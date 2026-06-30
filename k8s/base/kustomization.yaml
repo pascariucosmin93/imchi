@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - configmap.yaml
+  - storage.yaml
+  - postgres.yaml
+  - valkey.yaml
+  - machine-learning.yaml
+  - server.yaml
+  - service.yaml
+
+images:
+  - name: ghcr.io/pascariucosmin93/imchi/immich-server
+    newTag: main
+  - name: ghcr.io/pascariucosmin93/imchi/immich-machine-learning
+    newTag: main
