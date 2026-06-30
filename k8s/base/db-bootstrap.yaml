@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: immich-db-bootstrap
+  namespace: immich
+spec:
+  backoffLimit: 12
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: db-bootstrap
+          image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-secrets
+                  key: DB_PASSWORD
+            - name: DB_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: immich-config
+                  key: DB_HOSTNAME
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: immich-config
+                  key: DB_USERNAME
+            - name: DB_DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: immich-config
+                  key: DB_DATABASE_NAME
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h "$DB_HOSTNAME" -U "$DB_USERNAME" -d postgres; do
+                sleep 5
+              done
+
+              if ! psql -h "$DB_HOSTNAME" -U "$DB_USERNAME" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$DB_DATABASE_NAME'" | grep -q 1; then
+                createdb -h "$DB_HOSTNAME" -U "$DB_USERNAME" "$DB_DATABASE_NAME"
+              fi

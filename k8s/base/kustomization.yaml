@@ -6,6 +6,7 @@ resources:
   - secret.yaml
   - configmap.yaml
   - storage.yaml
+  - db-bootstrap.yaml
   - postgres.yaml
   - valkey.yaml
   - machine-learning.yaml
